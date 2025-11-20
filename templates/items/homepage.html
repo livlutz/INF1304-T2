@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Bem-vindo ao Quitute nas Nuvens{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+    <div class="text-center mb-12">
+        <h2 class="text-4xl font-bold text-amber-700 mb-4">🍰 Bem-vindo ao Quitute nas Nuvens 🍰</h2>
+        <p class="text-xl text-gray-600 mb-2">Delícias artesanais feitas com carinho!</p>
+        <p class="text-gray-500">Reserve seus quitutes favoritos de forma rápida e fácil.</p>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+        <h3 class="text-2xl font-bold text-center text-gray-800 mb-6">Para começar, informe seu e-mail</h3>
+        
+        <form method="POST" action="{% url 'homepage' %}" class="space-y-6">
+            {% csrf_token %}
+            
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
+                <input type="email" id="email" name="email" required 
+                       class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-lg"
+                       placeholder="seu.email@exemplo.com">
+            </div>
+
+            <button type="submit" class="w-full bg-amber-600 text-white px-6 py-4 rounded-lg hover:bg-amber-700 font-bold text-lg transition shadow-md hover:shadow-lg">
+                Ver Quitutes Disponíveis
+            </button>
+        </form>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="text-4xl mb-3">🎂</div>
+            <h4 class="font-bold text-gray-800 mb-2">Variedade</h4>
+            <p class="text-gray-600 text-sm">Diversos quitutes artesanais</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="text-4xl mb-3">⚡</div>
+            <h4 class="font-bold text-gray-800 mb-2">Fácil</h4>
+            <p class="text-gray-600 text-sm">Reserve em poucos cliques</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="text-4xl mb-3">✨</div>
+            <h4 class="font-bold text-gray-800 mb-2">Qualidade</h4>
+            <p class="text-gray-600 text-sm">Produtos frescos e saborosos</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

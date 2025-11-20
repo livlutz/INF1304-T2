@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Quitutes Disponíveis{% endblock %}
+
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h2 class="text-3xl font-bold">Quitutes Disponíveis para Reserva</h2>
+    <a href="{% url 'homepage' %}" class="text-amber-600 hover:text-amber-700 font-semibold">← Trocar E-mail</a>
+</div>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for item in items %}
+    <div class="bg-white shadow rounded-lg p-6 hover:shadow-lg transition">
+        <h3 class="text-xl font-bold mb-2 text-amber-700">{{ item.nome }}</h3>
+        <p class="text-gray-600 mb-4">
+            {% if item.estoque > 0 %}
+                <span class="text-green-600 font-semibold">{{ item.estoque }} disponíveis</span>
+            {% else %}
+                <span class="text-red-600 font-semibold">Esgotado</span>
+            {% endif %}
+        </p>
+        
+        {% if item.estoque > 0 %}
+        <a href="{% url 'item_detail' item.id %}" class="bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700 inline-block w-full text-center">
+            Reservar
+        </a>
+        {% else %}
+        <button disabled class="bg-gray-300 text-gray-500 px-4 py-2 rounded cursor-not-allowed w-full">
+            Indisponível
+        </button>
+        {% endif %}
+    </div>
+    {% empty %}
+    <div class="col-span-full text-center text-gray-500 py-8">
+        <p class="text-xl">Nenhum quitute disponível no momento.</p>
+        <p class="mt-2">Volte em breve para conferir nossas delícias!</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
