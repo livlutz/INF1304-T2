@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}Reserva Confirmada{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+    <div class="text-center mb-6">
+        <svg class="mx-auto h-16 w-16 text-green-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <h2 class="text-3xl font-bold text-green-600 mb-2">Reserva Confirmada!</h2>
+        <p class="text-gray-600">Seu pedido foi registrado com sucesso.</p>
+    </div>
+
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-6 mb-6">
+        <h3 class="font-bold text-lg mb-3 text-amber-800">Detalhes da Reserva</h3>
+        <div class="space-y-2 text-gray-700">
+            <p><span class="font-semibold">Cliente:</span> {{ nome_cliente }}</p>
+            <p><span class="font-semibold">E-mail:</span> {{ email_cliente }}</p>
+            <p><span class="font-semibold">Item:</span> {{ item_nome }}</p>
+            <p><span class="font-semibold">Quantidade:</span> {{ quantidade }}</p>
+        </div>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <p class="text-blue-700 text-sm">
+            <span class="font-semibold">📧 Confirmação enviada!</span> 
+            Você receberá um e-mail com os detalhes da sua reserva em <strong>{{ email_cliente }}</strong>
+        </p>
+    </div>
+
+    <div class="text-center">
+        <a href="{% url 'item_list' %}" class="bg-amber-600 text-white px-8 py-3 rounded-lg hover:bg-amber-700 inline-block font-semibold transition">
+            Ver Mais Quitutes
+        </a>
+    </div>
+</div>
+{% endblock %}
