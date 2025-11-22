@@ -18,7 +18,7 @@
                 <span class="text-red-600 font-semibold">Esgotado</span>
             {% endif %}
         </p>
-        
+
         {% if item.estoque > 0 %}
         <a href="{% url 'item_detail' item.id %}" class="bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700 inline-block w-full text-center">
             Reservar
@@ -32,7 +32,6 @@
     {% empty %}
     <div class="col-span-full text-center text-gray-500 py-8">
         <p class="text-xl">Nenhum quitute disponível no momento.</p>
-        <p class="mt-2">Volte em breve para conferir nossas delícias!</p>
     </div>
     {% endfor %}
 </div>
