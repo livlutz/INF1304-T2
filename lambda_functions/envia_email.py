@@ -1,3 +1,3 @@
 
 def lambda_handler(event, context):
-    pass
+    #enviar o email se o pedido chegou

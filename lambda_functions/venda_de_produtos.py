@@ -1,3 +1,3 @@
 
 def lambda_handler(event, context):
-    pass
+    #alguem pediu um produto e tem q diminuir o estoque dele
