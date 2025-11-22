@@ -124,9 +124,11 @@ def lambda_handler(event, context):
                 "total_produtos": len(PRODUTOS_PADARIA)
             })
         }
+
         return response
 
     except Exception as e:
+        
         return {
             "statusCode": 400,
             "body": json.dumps({"error": str(e)})
