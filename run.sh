@@ -2,4 +2,6 @@
 
 source venv/bin/activate
 pip install -r requirements.txt
-streamlit run interface.py
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver
