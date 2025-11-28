@@ -1,12 +1,13 @@
 import json
 import boto3
 import pymysql
+import os
 
 # RDS MySQL connection details
-host = 'padaria-db.cyzbfkdaor1i.us-east-1.rds.amazonaws.com'
-user = "padaria_livia"
-password = "P$dAr1$12345"
-database = "padaria-db"
+host = os.getenv('DB_HOST')
+user = os.getenv('DB_USER')
+password = os.getenv('DB_PASSWORD')
+database = os.getenv('DB_NAME')
 
 def lambda_handler(event, context):
     """

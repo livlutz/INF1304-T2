@@ -87,17 +87,19 @@ class ItemReserveView(SessionRequiredMixin, View):
         quantidade = int(request.POST.get('quantidade', 1))
         email_cliente = request.session.get('customer_email')
         
-        if item.estoque >= quantidade:
+        if item.quantidade_estoque >= quantidade:
             # Cria a reserva
             Reserva.objects.create(
                 item=item,
                 nome_cliente=nome_cliente,
                 email_cliente=email_cliente,
-                quantidade=quantidade
+                quantidade=quantidade,
+                confirmado=True
             )
             
             # Atualiza o estoque
-            item.estoque -= quantidade
+            item.quantidade_estoque -= quantidade
+            item.disponivel = item.quantidade_estoque > 0
             item.save()
             
             # Renderiza página de sucesso

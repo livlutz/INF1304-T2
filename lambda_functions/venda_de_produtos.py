@@ -1,15 +1,16 @@
 import json
 import boto3
 import pymysql
+import os
 
 # Cria cliente Lambda
 lambda_client = boto3.client('lambda')
 
 # RDS MySQL connection details
-host = 'padaria-db.cyzbfkdaor1i.us-east-1.rds.amazonaws.com'
-user = "padaria_livia"
-password = "P$dAr1$12345"
-database = "padaria-db"
+host = os.getenv('DB_HOST')
+user = os.getenv('DB_USER')
+password = os.getenv('DB_PASSWORD')
+database = os.getenv('DB_NAME')
 
 def lambda_handler(event, context):
     """
@@ -18,8 +19,16 @@ def lambda_handler(event, context):
     # Show the incoming event in the debug log
     print("Event received by Lambda function: " + json.dumps(event, indent=2))
 
-    log = json.loads(event['body'])
     # Parse the event body to get the parameters
+    if 'body' not in event or event['body'] is None:
+        return {
+            'statusCode': 400,
+            'body': json.dumps({
+                'message': 'Body é obrigatório. Envie um POST request com JSON contendo produto_id, quantidade e email.'
+            })
+        }
+    
+    log = json.loads(event['body'])
     produto_id = log.get('produto_id')
     quantidade = log.get('quantidade', 1)  # Default 1 unidade
     email = log.get('email')
