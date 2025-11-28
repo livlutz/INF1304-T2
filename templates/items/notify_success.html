@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Notificação Registrada{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+    <div class="text-center">
+        <div class="mb-6">
+            <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                <span class="text-4xl">🔔</span>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">
+                {% if already_registered %}
+                    Você já está na lista!
+                {% else %}
+                    Notificação Registrada!
+                {% endif %}
+            </h2>
+        </div>
+
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+            <p class="text-gray-700 text-lg mb-2">
+                {% if already_registered %}
+                    Você já está registrado para ser notificado quando <strong class="text-amber-700">{{ item.nome }}</strong> voltar ao estoque.
+                {% else %}
+                    Você será notificado no e-mail <strong class="text-blue-700">{{ email_cliente }}</strong> quando <strong class="text-amber-700">{{ item.nome }}</strong> voltar ao estoque.
+                {% endif %}
+            </p>
+            <p class="text-gray-600 text-sm mt-3">
+                Fique atento à sua caixa de entrada!
+            </p>
+        </div>
+
+        <div class="flex gap-4">
+            <a href="{% url 'item_list' %}" class="flex-1 bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 font-semibold transition">
+                Ver Outros Quitutes
+            </a>
+            <a href="{% url 'item_detail' item.id %}" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 font-semibold transition">
+                Voltar
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
