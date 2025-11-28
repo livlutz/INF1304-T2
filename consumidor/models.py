@@ -2,9 +2,9 @@ from django.db import models
 
 class Item(models.Model):
     nome = models.CharField(max_length=200)
-    quantidade_estoque = models.IntegerField(default=0, db_column='quantidade_estoque')
-    disponivel = models.BooleanField(default=True)
-    
+    estoque = models.IntegerField(default=0)
+    imagem = models.ImageField(upload_to='produtos/', null=True, blank=True)
+
     def __str__(self):
         return self.nome
 
@@ -15,7 +15,7 @@ class Reserva(models.Model):
     quantidade = models.IntegerField()
     confirmado = models.BooleanField(default=False)
     data_reserva = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f"{self.nome_cliente or self.email_cliente} - {self.item.nome} ({self.quantidade})"
 
