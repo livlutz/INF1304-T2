@@ -9,25 +9,35 @@
 
 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     {% for item in items %}
-    <div class="bg-white shadow rounded-lg p-6 hover:shadow-lg transition">
-        <h3 class="text-xl font-bold mb-2 text-amber-700">{{ item.nome }}</h3>
-        <p class="text-gray-600 mb-4">
-            {% if item.estoque > 0 %}
-                <span class="text-green-600 font-semibold">{{ item.estoque }} disponíveis</span>
-            {% else %}
-                <span class="text-red-600 font-semibold">Esgotado</span>
-            {% endif %}
-        </p>
-
-        {% if item.estoque > 0 %}
-        <a href="{% url 'item_detail' item.id %}" class="bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700 inline-block w-full text-center">
-            Reservar
-        </a>
+    <div class="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition">
+        {% if item.imagem %}
+        <img src="{{ item.imagem.url }}" alt="{{ item.nome }}" class="w-full h-48 object-cover">
         {% else %}
-        <button disabled class="bg-gray-300 text-gray-500 px-4 py-2 rounded cursor-not-allowed w-full">
-            Indisponível
-        </button>
+        <div class="w-full h-48 bg-gray-200 flex items-center justify-center">
+            <span class="text-gray-400">Sem imagem</span>
+        </div>
         {% endif %}
+
+        <div class="p-6">
+            <h3 class="text-xl font-bold mb-2 text-amber-700">{{ item.nome }}</h3>
+            <p class="text-gray-600 mb-4">
+                {% if item.estoque > 0 %}
+                    <span class="text-green-600 font-semibold">{{ item.estoque }} disponíveis</span>
+                {% else %}
+                    <span class="text-red-600 font-semibold">Esgotado</span>
+                {% endif %}
+            </p>
+
+            {% if item.estoque > 0 %}
+            <a href="{% url 'item_detail' item.id %}" class="bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700 inline-block w-full text-center">
+                Reservar
+            </a>
+            {% else %}
+            <button disabled class="bg-gray-300 text-gray-500 px-4 py-2 rounded cursor-not-allowed w-full">
+                Indisponível
+            </button>
+            {% endif %}
+        </div>
     </div>
     {% empty %}
     <div class="col-span-full text-center text-gray-500 py-8">
