@@ -16,7 +16,11 @@ def lambda_handler(event, context):
     # Show the incoming event in the debug log
     print("Event received by Lambda function: " + json.dumps(event, indent=2))
 
-    log = json.loads(event['body'])
+    if "body" in event:
+        log = json.loads(event["body"])
+    else:
+        log = event
+
     # Parse the event body to get the product ID
     produto_id = log.get('produto_id')
 
