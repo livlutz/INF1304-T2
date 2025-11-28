@@ -8,15 +8,15 @@
     <div class="mb-6">
         <p class="text-gray-700 mb-2">
             <span class="font-semibold">Disponível:</span> 
-            {% if item.estoque > 0 %}
-                <span class="text-green-600 text-lg">{{ item.estoque }} unidades</span>
+            {% if item.quantidade_estoque > 0 %}
+                <span class="text-green-600 text-lg">{{ item.quantidade_estoque }} unidades</span>
             {% else %}
                 <span class="text-red-600 text-lg">Esgotado</span>
             {% endif %}
         </p>
     </div>
 
-    {% if item.estoque > 0 %}
+    {% if item.quantidade_estoque > 0 %}
     <form method="POST" action="{% url 'item_reserve' item.id %}" class="space-y-4">
         {% csrf_token %}
         
@@ -29,7 +29,7 @@
 
         <div>
             <label for="quantidade" class="block text-sm font-medium text-gray-700 mb-2">Quantidade</label>
-            <input type="number" id="quantidade" name="quantidade" min="1" max="{{ item.estoque }}" value="1" required
+            <input type="number" id="quantidade" name="quantidade" min="1" max="{{ item.quantidade_estoque }}" value="1" required
                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent">
         </div>
 
@@ -46,9 +46,14 @@
     <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
         <p class="text-red-700">Este item está esgotado no momento.</p>
     </div>
-    <a href="{% url 'item_list' %}" class="bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 inline-block text-center w-full font-semibold">
-        Voltar
-    </a>
+    <div class="flex gap-4">
+        <a href="{% url 'item_notify' item.id %}" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 text-center font-semibold">
+            🔔 Me avise quando voltar
+        </a>
+        <a href="{% url 'item_list' %}" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 text-center font-semibold">
+            Voltar
+        </a>
+    </div>
     {% endif %}
 </div>
 {% endblock %}
