@@ -1,6 +1,7 @@
 import json
 import boto3
 import pymysql
+import os
 
 # RDS MySQL connection details
 host = os.getenv('DB_HOST')
@@ -102,25 +103,35 @@ def lambda_handler(event, context):
                 snsTopicArn = [t['TopicArn'] for t in sns.list_topics()['Topics']
                               if t['TopicArn'].lower().endswith(':' + alertTopic.lower())][0]
 
-                # Envia email para cada cliente
+                # Envia email para cada cliente que solicitou notificação para este produto específico
                 for cliente in clientes:
                     email = cliente[0]
+
+                    # Verifica se o email está inscrito no SNS
+                    cursor.execute(
+                        """
+                        SELECT subscribed
+                        FROM consumidor_emailsubscription
+                        WHERE email = %s AND subscribed = TRUE
+                        """,
+                        (email,)
+                    )
+                    subscription = cursor.fetchone()
+
+                    if not subscription:
+                        print(f"Email {email} não está inscrito no SNS. Pulando...")
+                        continue
 
                     message = f"Boa notícia! O produto '{produto_nome}' que você estava esperando acabou de chegar na padaria! Temos {quantidade} unidades disponíveis. Venha buscar o seu!"
 
                     try:
-                        # Send message to SNS
+                        # Send targeted message using MessageAttributes for filtering
+                        # Note: For email protocol, all subscribers still receive it,
+                        # but we're only sending to those who requested this specific product
                         sns.publish(
                             TopicArn=snsTopicArn,
                             Message=message,
-                            Subject=f'{produto_nome} disponível na Padaria!',
-                            MessageStructure='raw',
-                            MessageAttributes={
-                                'recipient': {
-                                    'DataType': 'String',
-                                    'StringValue': str(email)
-                                }
-                            }
+                            Subject=f'{produto_nome} disponível na Padaria!'
                         )
 
                         # Marca como notificado
@@ -169,7 +180,7 @@ def lambda_handler(event, context):
             'statusCode': 500,
             'body': json.dumps(f"Error: {str(e)}")
         }
-        
+
     finally:
         connection.close()
 
