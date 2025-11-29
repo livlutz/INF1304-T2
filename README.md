@@ -21,7 +21,27 @@ Thiago Pereira Camerato - 2212580
 
 Desenvolver uma aplicação web para gerenciamento de reservas de quitutes em uma padaria virtual, integrando serviços da AWS (Lambda, RDS, SNS) para automatizar o controle de estoque e notificações aos clientes.
 
-### Requisitos Implementados
+## 📊 Diagramas
+
+### Diagrama de Blocos da Arquitetura
+
+![Diagrama de Blocos](diagramas/Diagrama_de_bloco.png)
+
+### Diagramas UML de sequência
+
+#### Verificação de Disponibilidade
+
+![UML Verifica Disponibilidade](diagramas/UML_verifica_disponibilidade.png)
+
+#### Envio de Email
+
+![UML Envio de Email](diagramas/UML_envio_de_email.png)
+
+#### Venda de Produtos
+
+![UML Venda de Produtos](diagramas/UML_venda_de_produtos.png)
+
+## Requisitos Implementados
 
 **Funções Lambda :**
 - `Entrega de produtos` - Popula o banco de dados com 20 produtos da padaria, simulando a entrega de produtos pelo fornecedor
@@ -71,25 +91,25 @@ Desenvolver uma aplicação web para gerenciamento de reservas de quitutes em um
 ### Passos de Instalação
 
 1. **Clone o repositório:**
-```bash
-git clone https://github.com/livlutz/INF1304-T2.git
-cd INF1304-T2
-```
+   ```bash
+   git clone https://github.com/livlutz/INF1304-T2.git
+   cd INF1304-T2
+   ```
 
-Como alternativa podemos também dar um fork no repositório.
+   Como alternativa podemos também dar um fork no repositório.
 
 2. **Crie um ambiente virtual:**
-```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# ou
-venv\Scripts\activate  # Windows
-```
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   # ou
+   venv\Scripts\activate  # Windows
+   ```
 
 3. **Instale as dependências:**
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
 4. **Configure o banco de dados RDS:**
    - Crie uma instância MySQL no Amazon RDS
@@ -98,13 +118,13 @@ pip install -r requirements.txt
 
 5. **Configure variáveis de ambiente:**
    - Crie um arquivo `.env` na raiz do projeto:
-```env
-DB_HOST=seu-endpoint-rds.us-east-1.rds.amazonaws.com
-DB_USER=seu_usuario
-DB_PASSWORD=sua_senha
-DB_NAME=padaria-db
-DB_PORT=3306
-```
+   ```env
+   DB_HOST=seu-endpoint-rds.us-east-1.rds.amazonaws.com
+   DB_USER=seu_usuario
+   DB_PASSWORD=sua_senha
+   DB_NAME=padaria-db
+   DB_PORT=3306
+   ```
 
 6. **Configure o SNS na AWS:**
    - Acesse o Console AWS → SNS
@@ -112,21 +132,27 @@ DB_PORT=3306
    - Inscreva seu e-mail no tópico para receber notificações
    - Confirme a inscrição através do e-mail recebido
 
+
 7. **Execute as migrações do Django:**
-```bash
-python manage.py migrate
-```
+   ```bash
+   python manage.py migrate
+   ```
 
 8. **Deploy das Funções Lambda:**
    - Acesse AWS Lambda Console
-   - Crie 4 funções Lambda com Python 3.11+
+   - Crie 5 funções Lambda com Python 3.11+
    - Faça upload dos arquivos em `lambda_functions/`:
-     - `entrega_de_produtos.py`
+     - `simulador_vendedor.py`
      - `verifica_disponivel.py`
      - `envia_email_interessados.py`
      - `venda_de_produtos.py`
+     - `subscribe_email.py`
    - Configure variáveis de ambiente nas funções Lambda (credenciais RDS)
-   - Adicione permissões IAM para acessar RDS e SNS
+
+9. **Rode o script para atualizar o banco de dados:**
+   ```bash
+   ./atualizar_banco.sh
+   ```
 
 ## 📖 Instruções de Operação
 
