@@ -23,14 +23,12 @@ class Reserva(models.Model):
 class Notificacao(models.Model):
     email_cliente = models.EmailField()
     item = models.ForeignKey(Item, on_delete=models.CASCADE, related_name='notificacoes')
+    quantidade = models.IntegerField(default=1)  # Quantidade desejada para notificação
     notificado = models.BooleanField(default=False)
     data_criacao = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        unique_together = ('email_cliente', 'item')
-    
+
     def __str__(self):
-        return f"{self.email_cliente} - {self.item.nome}"
+        return f"{self.email_cliente} - {self.item.nome} ({self.quantidade})"
 
 
 class EmailSubscription(models.Model):
@@ -41,7 +39,7 @@ class EmailSubscription(models.Model):
     subscription_arn = models.CharField(max_length=255, null=True, blank=True)
     subscribed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f"{self.email} - {'Inscrito' if self.subscribed else 'Pendente'}"
 

@@ -120,8 +120,39 @@ def lambda_handler(event, context):
 
             print(f"Venda processada: {quantidade}x {nome} para {email}")
 
-            # Se o produto ficou indisponível, podemos notificar os interessados
-            # quando ele voltar ao estoque (isso seria feito pela função envia_email)
+            # Envia email de retirada via SNS
+            try:
+                sns = boto3.client('sns', region_name=os.getenv('AWS_REGION', 'us-east-1'))
+                alertTopic = 'EnviaEmail'
+                snsTopicArn = [t['TopicArn'] for t in sns.list_topics()['Topics']
+                              if t['TopicArn'].lower().endswith(':' + alertTopic.lower())][0]
+
+                subject = f'Seu pedido está pronto para retirada - {nome}'
+                message = f"""
+Olá,
+
+Seu pedido foi confirmado com sucesso!
+
+Detalhes do pedido:
+- Produto: {nome}
+- Quantidade: {quantidade}
+- Estoque restante: {nova_quantidade}
+
+Você pode retirar seu produto na padaria agora mesmo.
+
+Atenciosamente,
+Quitute nas Nuvens
+"""
+                response = sns.publish(
+                    TopicArn=snsTopicArn,
+                    Message=message,
+                    Subject=subject
+                )
+                print(f"📧 Email de retirada enviado via SNS para {email}: {response}")
+            except Exception as e:
+                print(f"❌ Erro ao enviar email de retirada para {email}: {e}")
+
+
 
     except pymysql.MySQLError as e:
         print(f"Error connecting to MySQL: {e}")
