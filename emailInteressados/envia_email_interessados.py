@@ -110,6 +110,7 @@ def lambda_handler(event, context):
                               if t['TopicArn'].lower().endswith(':' + alertTopic.lower())][0]
 
                 # Envia email para cada cliente que solicitou notificação para este produto específico
+                print(f"Found SNS topic ARN: {snsTopicArn}")
                 for cliente in clientes:
                     email = cliente[0]
 
@@ -131,14 +132,13 @@ def lambda_handler(event, context):
                     message = f"Boa notícia! O produto '{produto_nome}' que você estava esperando acabou de chegar na padaria! Temos {quantidade} unidades disponíveis. Venha buscar o seu!"
 
                     try:
-                        # Send targeted message using MessageAttributes for filtering
-                        # Note: For email protocol, all subscribers still receive it,
-                        # but we're only sending to those who requested this specific product
-                        sns.publish(
+                        print(f"Publishing to SNS topic {snsTopicArn} for recipient {email}")
+                        resp = sns.publish(
                             TopicArn=snsTopicArn,
                             Message=message,
                             Subject=f'{produto_nome} disponível na Padaria!'
                         )
+                        print(f"SNS publish response: {resp}")
 
                         # Marca como notificado
                         cursor.execute(
@@ -151,12 +151,15 @@ def lambda_handler(event, context):
                         )
 
                         emails_enviados += 1
-                        print(f"Email enviado para {email}")
+                        print(f"Email enviado (SNS) para {email}")
 
-                    except boto3.exceptions.Boto3Error as e:
-                        print(f"Error sending SNS message to {email}: {e}")
+                    except Exception as e:
+                        # Log full exception for CloudWatch
+                        print(f"Error publishing to SNS for {email}: {type(e).__name__}: {e}")
+                        # don't re-raise, continue with next recipient
                         continue
 
+                # Commit DB changes after attempting all publishes
                 connection.commit()
 
             except boto3.exceptions.Boto3Error as e:
