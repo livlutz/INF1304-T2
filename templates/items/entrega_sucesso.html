@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Produtos Entregues{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+    <div class="text-center mb-6">
+        <div class="text-6xl mb-4">✅</div>
+        <h2 class="text-3xl font-bold text-green-600 mb-4">Produtos Entregues com Sucesso!</h2>
+    </div>
+
+    <div class="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
+        <p class="text-green-800 text-lg mb-4">{{ message }}</p>
+        
+        <div class="grid grid-cols-3 gap-4 mt-4">
+            <div class="bg-white p-4 rounded-lg text-center">
+                <div class="text-3xl font-bold text-blue-600">{{ produtos_inseridos }}</div>
+                <div class="text-sm text-gray-600 mt-1">Novos Produtos</div>
+            </div>
+            <div class="bg-white p-4 rounded-lg text-center">
+                <div class="text-3xl font-bold text-green-600">{{ produtos_atualizados }}</div>
+                <div class="text-sm text-gray-600 mt-1">Atualizados</div>
+            </div>
+            <div class="bg-white p-4 rounded-lg text-center">
+                <div class="text-3xl font-bold text-amber-600">{{ total_produtos }}</div>
+                <div class="text-sm text-gray-600 mt-1">Total Processados</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex gap-4">
+        <a href="{% url 'item_list' %}" class="flex-1 bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 text-center font-semibold">
+            Ver Produtos Disponíveis
+        </a>
+        <a href="{% url 'entregar_produtos' %}" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 text-center font-semibold">
+            Entregar Mais
+        </a>
+    </div>
+</div>
+{% endblock %}
