@@ -17,9 +17,15 @@ def lambda_handler(event, context):
     # Show the incoming event in the debug log
     print("Event received by Lambda function: " + json.dumps(event, indent=2))
 
-    if "body" in event:
-        log = json.loads(event["body"])
+    # Parse event - pode vir de HTTP (com body) ou de outra Lambda (direto)
+    if "body" in event and event["body"] is not None:
+        # Chamada via HTTP (Function URL)
+        if isinstance(event["body"], str):
+            log = json.loads(event["body"])
+        else:
+            log = event["body"]
     else:
+        # Chamada direta (de outra Lambda ou teste console)
         log = event
 
     # Parse the event body to get the product ID

@@ -134,6 +134,13 @@ class ItemNotifyView(SessionRequiredMixin, View):
         item = get_object_or_404(Item, pk=pk)
         email_cliente = request.session.get('customer_email')
         
+        # Verifica se o email está inscrito no SNS
+        from .models import EmailSubscription
+        email_subscription = EmailSubscription.objects.filter(
+            email=email_cliente,
+            subscribed=True
+        ).first()
+        
         # Cria ou obtém a notificação existente
         notificacao, created = Notificacao.objects.get_or_create(
             email_cliente=email_cliente,
@@ -143,7 +150,8 @@ class ItemNotifyView(SessionRequiredMixin, View):
         return render(request, 'items/notify_success.html', {
             'item': item,
             'email_cliente': email_cliente,
-            'already_registered': not created
+            'already_registered': not created,
+            'email_subscribed': email_subscription is not None
         })
 
 

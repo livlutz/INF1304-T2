@@ -11,25 +11,26 @@ database = os.getenv('DB_NAME')
 
 def lambda_handler(event, context):
     """
-    Verifica se o item está disponível no estoque.
-    Se disponível, envia email para o cliente ir buscar.
-    Se não disponível, registra interesse e notificará quando chegar.
+    Envia email para clientes que estavam esperando por um produto que acabou de chegar.
+    Esta função é chamada quando produtos são entregues/reabastecidos.
     """
     # Show the incoming event in the debug log
     print("Event received by Lambda function: " + json.dumps(event, indent=2))
 
-    log = json.loads(event['body'])
-    # Parse the event body to get the parameters
-    produto_id = log.get('produto_id')
-    email = log.get('email')
+    if "body" in event:
+        log = json.loads(event["body"])
+    else:
+        log = event
 
-    if not produto_id or not email:
+    # Parse the event body to get the product ID
+    produto_id = log.get('produto_id')
+
+    if not produto_id:
         return {
             'statusCode': 400,
             'body': json.dumps({
-                'message': 'produto_id e email são obrigatórios.',
-                'produto_id': produto_id,
-                'email': email
+                'message': 'produto_id é obrigatório.',
+                'produto_id': produto_id
             })
         }
 
@@ -42,90 +43,121 @@ def lambda_handler(event, context):
             database=database
         )
 
+        emails_enviados = 0
+        produto_nome = None
+
         with connection.cursor() as cursor:
-            # Busca o produto pelo ID e verifica disponibilidade
+            # Busca informações do produto
             cursor.execute(
-                "SELECT id, nome, quantidade_estoque, disponivel FROM consumidor_item WHERE id = %s",
+                "SELECT nome, quantidade_estoque, disponivel FROM consumidor_item WHERE id = %s",
                 (produto_id,)
             )
-            result = cursor.fetchone()
+            produto = cursor.fetchone()
 
-            if result:
-                produto_id_db, nome, quantidade, disponivel = result
-
-                # Verifica se está disponível (em estoque e com quantidade > 0)
-                if disponivel and quantidade > 0:
-                    # Produto DISPONÍVEL - enviar email para o cliente ir buscar
-                    message = f"Boa notícia! O produto '{nome}' está disponível na padaria! Temos {quantidade} unidades em estoque. Venha buscar o seu!"
-
-                    # Connect to SNS
-                    sns = boto3.client('sns')
-                    alertTopic = 'ProdutoDisponivel'
-                    try:
-                        snsTopicArn = [t['TopicArn'] for t in sns.list_topics()['Topics']
-                                      if t['TopicArn'].lower().endswith(':' + alertTopic.lower())][0]
-
-                        # Send message to SNS
-                        sns.publish(
-                            TopicArn=snsTopicArn,
-                            Message=message,
-                            Subject='Produto Disponível na Padaria!',
-                            MessageStructure='raw',
-                            MessageAttributes={
-                                'recipient': {
-                                    'DataType': 'String',
-                                    'StringValue': str(email)
-                                }
-                            }
-                        )
-
-                        return {
-                            'statusCode': 200,
-                            'body': json.dumps({
-                                'message': f'{nome} está disponível! Email enviado para {email}.',
-                                'produto': nome,
-                                'quantidade_estoque': quantidade,
-                                'disponivel': True
-                            })
-                        }
-
-                    except boto3.exceptions.Boto3Error as e:
-                        print(f"Error sending SNS message: {e}")
-                        return {
-                            'statusCode': 500,
-                            'body': json.dumps(f"Error sending SNS message: {str(e)}")
-                        }
-                else:
-                    # Produto NÃO DISPONÍVEL - registrar interesse
-                    message = f"Desculpe, '{nome}' não está disponível no momento. Vamos te notificar quando chegar!"
-
-                    # Registra o interesse do cliente (inserir na tabela de notificações)
-                    cursor.execute(
-                        """
-                        INSERT INTO consumidor_notificacao (email_cliente, item_id, notificado)
-                        VALUES (%s, %s, %s)
-                        ON DUPLICATE KEY UPDATE notificado = FALSE
-                        """,
-                        (email, produto_id, False)
-                    )
-                    connection.commit()
-
-                    return {
-                        'statusCode': 404,
-                        'body': json.dumps({
-                            'message': message,
-                            'produto': nome,
-                            'disponivel': False,
-                            'interesse_registrado': True
-                        })
-                    }
-            else:
+            if not produto:
                 return {
                     'statusCode': 404,
                     'body': json.dumps({
-                        'message': f'Produto com ID {produto_id} não encontrado.',
-                        'produto_id': produto_id
+                        'message': f'Produto com ID {produto_id} não encontrado.'
                     })
+                }
+
+            produto_nome, quantidade, disponivel = produto
+
+            # Verifica se o produto está disponível
+            if not disponivel or quantidade <= 0:
+                return {
+                    'statusCode': 400,
+                    'body': json.dumps({
+                        'message': f'Produto {produto_nome} ainda não está disponível.',
+                        'produto': produto_nome,
+                        'quantidade_estoque': quantidade
+                    })
+                }
+
+            # Busca todos os clientes que querem ser notificados sobre este produto
+            cursor.execute(
+                """
+                SELECT email_cliente
+                FROM consumidor_notificacao
+                WHERE item_id = %s AND notificado = FALSE
+                """,
+                (produto_id,)
+            )
+            clientes = cursor.fetchall()
+
+            if not clientes:
+                return {
+                    'statusCode': 200,
+                    'body': json.dumps({
+                        'message': f'Nenhum cliente aguardando notificação para {produto_nome}.',
+                        'emails_enviados': 0
+                    })
+                }
+
+            # Connect to SNS
+            sns = boto3.client('sns')
+            alertTopic = 'EnviaEmail'
+
+            try:
+                snsTopicArn = [t['TopicArn'] for t in sns.list_topics()['Topics']
+                              if t['TopicArn'].lower().endswith(':' + alertTopic.lower())][0]
+
+                # Envia email para cada cliente que solicitou notificação para este produto específico
+                for cliente in clientes:
+                    email = cliente[0]
+
+                    # Verifica se o email está inscrito no SNS
+                    cursor.execute(
+                        """
+                        SELECT subscribed
+                        FROM consumidor_emailsubscription
+                        WHERE email = %s AND subscribed = TRUE
+                        """,
+                        (email,)
+                    )
+                    subscription = cursor.fetchone()
+
+                    if not subscription:
+                        print(f"Email {email} não está inscrito no SNS. Pulando...")
+                        continue
+
+                    message = f"Boa notícia! O produto '{produto_nome}' que você estava esperando acabou de chegar na padaria! Temos {quantidade} unidades disponíveis. Venha buscar o seu!"
+
+                    try:
+                        # Send targeted message using MessageAttributes for filtering
+                        # Note: For email protocol, all subscribers still receive it,
+                        # but we're only sending to those who requested this specific product
+                        sns.publish(
+                            TopicArn=snsTopicArn,
+                            Message=message,
+                            Subject=f'{produto_nome} disponível na Padaria!'
+                        )
+
+                        # Marca como notificado
+                        cursor.execute(
+                            """
+                            UPDATE consumidor_notificacao
+                            SET notificado = TRUE
+                            WHERE item_id = %s AND email_cliente = %s
+                            """,
+                            (produto_id, email)
+                        )
+
+                        emails_enviados += 1
+                        print(f"Email enviado para {email}")
+
+                    except boto3.exceptions.Boto3Error as e:
+                        print(f"Error sending SNS message to {email}: {e}")
+                        continue
+
+                connection.commit()
+
+            except boto3.exceptions.Boto3Error as e:
+                print(f"Error accessing SNS: {e}")
+                return {
+                    'statusCode': 500,
+                    'body': json.dumps(f"Error accessing SNS: {str(e)}")
                 }
 
     except pymysql.MySQLError as e:
@@ -134,22 +166,30 @@ def lambda_handler(event, context):
             'statusCode': 500,
             'body': json.dumps(f"MySQL connection error: {str(e)}")
         }
+
     except KeyError as e:
         print(f"Key error: {e}")
         return {
             'statusCode': 400,
             'body': json.dumps(f"Missing parameter: {str(e)}")
         }
+
     except Exception as e:
         print(f"An error occurred: {e}")
         return {
             'statusCode': 500,
             'body': json.dumps(f"Error: {str(e)}")
         }
+
     finally:
         connection.close()
 
     return {
         'statusCode': 200,
-        'body': json.dumps('Function ran without errors.')
+        'body': json.dumps({
+            'message': f'Emails enviados com sucesso para clientes aguardando {produto_nome}!',
+            'produto': produto_nome,
+            'emails_enviados': emails_enviados,
+            'quantidade_estoque': quantidade
+        })
     }

@@ -28,7 +28,10 @@ def lambda_handler(event, context):
             })
         }
     
-    log = json.loads(event['body'])
+    if "body" in event:
+        log = json.loads(event["body"])
+    else:
+        log = event
     produto_id = log.get('produto_id')
     quantidade = log.get('quantidade', 1)  # Default 1 unidade
     email = log.get('email')

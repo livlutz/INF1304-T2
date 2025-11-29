@@ -142,7 +142,7 @@ def subscribe_to_sns(email):
     try:
         # Connect to SNS
         sns = boto3.client('sns')
-        alertTopic = 'ProdutoDisponivel'
+        alertTopic = 'EnviaEmail'
         
         # Get SNS topic ARN
         snsTopicArn = [t['TopicArn'] for t in sns.list_topics()['Topics']
