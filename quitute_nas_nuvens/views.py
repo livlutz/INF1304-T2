@@ -22,6 +22,42 @@ class HomepageView(View):
         """Renderiza a página inicial."""
         return render(request, self.template_name)
 
+    def post(self, request):
+        """Processa o formulário de e-mail e inscreve no SNS via Lambda."""
+        email = request.POST.get('email')
+
+        if email:
+            # Salvar email na sessão
+            request.session['customer_email'] = email
+
+            # Verificar se email já está inscrito (evitar chamadas desnecessárias)
+            subscription, created = EmailSubscription.objects.get_or_create(
+                email=email,
+                defaults={'subscribed': False}
+            )
+
+            # Se é novo ou não está inscrito, chamar Lambda
+            if created or not subscription.subscribed:
+                print(f"📧 Inscrevendo email {email} no SNS via Lambda...")
+
+                result = subscribe_email_to_sns(email)
+
+                if result['success']:
+                    # Atualizar status local
+                    subscription.subscription_arn = result.get('subscription_arn')
+                    subscription.subscribed = True
+                    subscription.save()
+                    print(f"✅ Email {email} inscrito com sucesso!")
+                else:
+                    print(f"⚠️ Falha ao inscrever {email}: {result['message']}")
+                    # Não bloqueia o fluxo - usuário continua navegando
+            else:
+                print(f"ℹ️ Email {email} já está inscrito no SNS")
+
+            return redirect('item_list')
+
+        return render(request, self.template_name)
+
 
 class SubscribeView(View):
     """
@@ -58,40 +94,4 @@ class SubscribeView(View):
         email = request.POST.get('email')
         self._subscribe_email(request, email)
         return redirect('item_list')
-
-    def post(self, request):
-        """Processa o formulário de e-mail e inscreve no SNS via Lambda."""
-        email = request.POST.get('email')
-
-        if email:
-            # Salvar email na sessão
-            request.session['customer_email'] = email
-
-            # Verificar se email já está inscrito (evitar chamadas desnecessárias)
-            subscription, created = EmailSubscription.objects.get_or_create(
-                email=email,
-                defaults={'subscribed': False}
-            )
-
-            # Se é novo ou não está inscrito, chamar Lambda
-            if created or not subscription.subscribed:
-                print(f"📧 Inscrevendo email {email} no SNS via Lambda...")
-
-                result = subscribe_email_to_sns(email)
-
-                if result['success']:
-                    # Atualizar status local
-                    subscription.subscription_arn = result.get('subscription_arn')
-                    subscription.subscribed = True
-                    subscription.save()
-                    print(f"✅ Email {email} inscrito com sucesso!")
-                else:
-                    print(f"⚠️ Falha ao inscrever {email}: {result['message']}")
-                    # Não bloqueia o fluxo - usuário continua navegando
-            else:
-                print(f"ℹ️ Email {email} já está inscrito no SNS")
-
-            return redirect('item_list')
-
-        return render(request, self.template_name)
 
