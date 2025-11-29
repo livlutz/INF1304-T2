@@ -9,7 +9,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views import View
 from django.views.generic import ListView, DetailView
 from django.urls import reverse_lazy
-from .models import Item, Reserva, Notificacao
+from .models import Item, Reserva
 from .lambda_integration import processar_venda, entregar_produtos
 import boto3
 import os
@@ -155,46 +155,6 @@ class ItemReserveView(SessionRequiredMixin, View):
     def get(self, request, pk):
         """Redireciona GET requests para a página de detalhes."""
         return redirect('item_detail', pk=pk)
-
-
-class ItemNotifyView(SessionRequiredMixin, View):
-    """
-    Registra o interesse do cliente em ser notificado quando o item voltar ao estoque.
-    """
-
-    def get(self, request, pk):
-        """
-        Registra a notificação para o item.
-
-        Args:
-            pk: ID do item
-
-        Returns:
-            Renderiza a página de confirmação de notificação
-        """
-        item = get_object_or_404(Item, pk=pk)
-        email_cliente = request.session.get('customer_email')
-
-        # Verifica se o email está inscrito no SNS
-        from .models import EmailSubscription
-        email_subscription = EmailSubscription.objects.filter(
-            email=email_cliente,
-            subscribed=True
-        ).first()
-
-        # Cria ou obtém a notificação existente
-        notificacao, created = Notificacao.objects.get_or_create(
-            email_cliente=email_cliente,
-            item=item
-        )
-
-        return render(request, 'items/notify_success.html', {
-            'item': item,
-            'email_cliente': email_cliente,
-            'already_registered': not created,
-            'email_subscribed': email_subscription is not None
-        })
-
 
 
 class EntregarProdutosView(View):
