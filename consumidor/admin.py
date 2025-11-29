@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Item, Reserva, Notificacao
+from .models import Item, Reserva, Notificacao, EmailSubscription
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
@@ -20,4 +20,12 @@ class NotificacaoAdmin(admin.ModelAdmin):
     list_filter = ['notificado', 'item']
     search_fields = ['email_cliente', 'item__nome']
     date_hierarchy = 'data_criacao'
+
+@admin.register(EmailSubscription)
+class EmailSubscriptionAdmin(admin.ModelAdmin):
+    list_display = ['email', 'subscribed', 'created_at']
+    list_filter = ['subscribed', 'created_at']
+    search_fields = ['email']
+    readonly_fields = ['subscription_arn', 'created_at']
+    date_hierarchy = 'created_at'
 

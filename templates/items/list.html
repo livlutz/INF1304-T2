@@ -21,14 +21,14 @@
         <div class="p-6">
             <h3 class="text-xl font-bold mb-2 text-amber-700">{{ item.nome }}</h3>
             <p class="text-gray-600 mb-4">
-                {% if item.estoque > 0 %}
-                    <span class="text-green-600 font-semibold">{{ item.estoque }} disponíveis</span>
+                {% if item.quantidade_estoque > 0 %}
+                    <span class="text-green-600 font-semibold">{{ item.quantidade_estoque }} disponíveis</span>
                 {% else %}
                     <span class="text-red-600 font-semibold">Esgotado</span>
                 {% endif %}
             </p>
 
-            {% if item.estoque > 0 %}
+            {% if item.quantidade_estoque > 0 %}
             <a href="{% url 'item_detail' item.id %}" class="bg-amber-600 text-white px-4 py-2 rounded hover:bg-amber-700 inline-block w-full text-center">
                 Reservar
             </a>

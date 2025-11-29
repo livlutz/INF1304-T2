@@ -11,55 +11,164 @@ database = os.getenv('DB_NAME')
 
 def lambda_handler(event, context):
     """
-    Subscribe a new user email to SNS topic when they register or make their first reservation.
-    This function should be triggered when a new email is added to the database.
+    Subscribe emails to SNS - suporta SQS Trigger e Function URL (HTTP)
     """
-    # Show the incoming event in the debug log
     print("Event received by Lambda function: " + json.dumps(event, indent=2))
+    
+    # Detectar origem do evento
+    if 'Records' in event:
+        # === TRIGGER SQS (caso queira usar no futuro) ===
+        return process_sqs_messages(event)
+    else:
+        # === FUNCTION URL (HTTP) ou Teste Manual ===
+        return process_http_request(event)
 
-    log = json.loads(event['body'])
-    # Parse the event body to get the email
-    email = log.get('email')
 
-    if not email:
+def process_http_request(event):
+    """Processa requisição HTTP (Function URL ou Teste Console)"""
+    try:
+        # Parse body
+        if 'body' in event:
+            body = json.loads(event['body'])
+        else:
+            body = event
+        
+        email = body.get('email')
+        
+        if not email:
+            return {
+                'statusCode': 400,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'message': 'email é obrigatório.',
+                    'email': email
+                })
+            }
+        
+        # Subscribe to SNS
+        result = subscribe_to_sns(email)
+        
+        if result['success']:
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'message': result['message'],
+                    'email': email,
+                    'subscription_arn': result.get('subscription_arn'),
+                    'note': 'O usuário precisa confirmar a inscrição clicando no link enviado por email.'
+                })
+            }
+        else:
+            return {
+                'statusCode': 500,
+                'headers': {
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': '*'
+                },
+                'body': json.dumps({
+                    'message': result['message']
+                })
+            }
+            
+    except Exception as e:
+        print(f"An error occurred: {e}")
         return {
-            'statusCode': 400,
-            'body': json.dumps({
-                'message': 'email é obrigatório.',
-                'email': email
-            })
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({'error': str(e)})
         }
 
+
+def process_sqs_messages(event):
+    """Processa mensagens SQS (para usar com Trigger SQS no futuro)"""
+    successful_messages = []
+    failed_messages = []
+    
+    for record in event['Records']:
+        try:
+            message_body = json.loads(record['body'])
+            email = message_body.get('email')
+            
+            if not email:
+                print(f"❌ Email não encontrado na mensagem: {record['body']}")
+                failed_messages.append(record['messageId'])
+                continue
+            
+            print(f"📧 Processando email: {email}")
+            
+            result = subscribe_to_sns(email)
+            
+            if result['success']:
+                successful_messages.append(record['messageId'])
+                print(f"✅ Email {email} inscrito com sucesso")
+            else:
+                failed_messages.append(record['messageId'])
+                print(f"❌ Falha ao inscrever {email}: {result['message']}")
+                
+        except Exception as e:
+            print(f"❌ Erro ao processar mensagem {record['messageId']}: {e}")
+            failed_messages.append(record['messageId'])
+    
+    if failed_messages:
+        raise Exception(f"Failed to process {len(failed_messages)} messages")
+    
+    return {
+        'statusCode': 200,
+        'body': json.dumps({
+            'total_messages': len(event['Records']),
+            'successful': len(successful_messages),
+            'failed': len(failed_messages)
+        })
+    }
+
+
+def subscribe_to_sns(email):
+    """
+    Subscribe email to SNS topic and save to database
+    
+    Returns:
+        dict: {'success': bool, 'message': str, 'subscription_arn': str}
+    """
     try:
         # Connect to SNS
         sns = boto3.client('sns')
         alertTopic = 'ProdutoDisponivel'
-
+        
+        # Get SNS topic ARN
+        snsTopicArn = [t['TopicArn'] for t in sns.list_topics()['Topics']
+                      if t['TopicArn'].lower().endswith(':' + alertTopic.lower())][0]
+        
+        # Subscribe email to SNS
+        response = sns.subscribe(
+            TopicArn=snsTopicArn,
+            Protocol='email',
+            Endpoint=email,
+            ReturnSubscriptionArn=True
+        )
+        
+        subscription_arn = response.get('SubscriptionArn')
+        
+        # Save to database
+        connection = pymysql.connect(
+            host=host,
+            user=user,
+            password=password,
+            database=database
+        )
+        
         try:
-            # Get the SNS topic ARN
-            snsTopicArn = [t['TopicArn'] for t in sns.list_topics()['Topics']
-                          if t['TopicArn'].lower().endswith(':' + alertTopic.lower())][0]
-
-            # Subscribe the email to the SNS topic
-            response = sns.subscribe(
-                TopicArn=snsTopicArn,
-                Protocol='email',
-                Endpoint=email,
-                ReturnSubscriptionArn=True
-            )
-
-            subscription_arn = response.get('SubscriptionArn')
-
-            # Connect to RDS MySQL to mark email as subscribed
-            connection = pymysql.connect(
-                host=host,
-                user=user,
-                password=password,
-                database=database
-            )
-
             with connection.cursor() as cursor:
-                # Check if email already exists in subscriptions table
+                # Create table if not exists
                 cursor.execute(
                     """
                     CREATE TABLE IF NOT EXISTS consumidor_emailsubscription (
@@ -71,8 +180,8 @@ def lambda_handler(event, context):
                     )
                     """
                 )
-
-                # Insert or update subscription record
+                
+                # Insert or update subscription
                 cursor.execute(
                     """
                     INSERT INTO consumidor_emailsubscription (email, subscription_arn, subscribed)
@@ -83,54 +192,37 @@ def lambda_handler(event, context):
                     """,
                     (email, subscription_arn, True, subscription_arn, True)
                 )
-
+                
                 connection.commit()
-
+        finally:
             connection.close()
-
-            return {
-                'statusCode': 200,
-                'body': json.dumps({
-                    'message': f'Email {email} subscrito com sucesso! Um email de confirmação foi enviado.',
-                    'email': email,
-                    'subscription_arn': subscription_arn,
-                    'note': 'O usuário precisa confirmar a inscrição clicando no link enviado por email.'
-                })
-            }
-
-        except IndexError:
-            return {
-                'statusCode': 404,
-                'body': json.dumps({
-                    'message': f'SNS Topic "{alertTopic}" não encontrado.',
-                    'topic': alertTopic
-                })
-            }
-
-        except boto3.exceptions.Boto3Error as e:
-            print(f"Error subscribing to SNS: {e}")
-            return {
-                'statusCode': 500,
-                'body': json.dumps(f"Error subscribing to SNS: {str(e)}")
-            }
-
+        
+        return {
+            'success': True,
+            'message': f'Email {email} subscrito com sucesso! Um email de confirmação foi enviado.',
+            'subscription_arn': subscription_arn
+        }
+        
+    except IndexError:
+        return {
+            'success': False,
+            'message': f'SNS Topic "{alertTopic}" não encontrado'
+        }
+    except boto3.exceptions.Boto3Error as e:
+        print(f"Error subscribing to SNS: {e}")
+        return {
+            'success': False,
+            'message': f'Erro ao inscrever no SNS: {str(e)}'
+        }
     except pymysql.MySQLError as e:
         print(f"Error connecting to MySQL: {e}")
         return {
-            'statusCode': 500,
-            'body': json.dumps(f"MySQL connection error: {str(e)}")
+            'success': False,
+            'message': f'Erro de conexão MySQL: {str(e)}'
         }
-
-    except KeyError as e:
-        print(f"Key error: {e}")
-        return {
-            'statusCode': 400,
-            'body': json.dumps(f"Missing parameter: {str(e)}")
-        }
-
     except Exception as e:
         print(f"An error occurred: {e}")
         return {
-            'statusCode': 500,
-            'body': json.dumps(f"Error: {str(e)}")
+            'success': False,
+            'message': f'Erro: {str(e)}'
         }

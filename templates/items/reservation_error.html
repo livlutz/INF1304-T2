@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Erro na Reserva{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+    <div class="text-center mb-6">
+        <div class="text-6xl mb-4">❌</div>
+        <h2 class="text-3xl font-bold text-red-600 mb-4">Erro na Reserva</h2>
+    </div>
+
+    <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+        <p class="text-red-800 text-lg">{{ error_message }}</p>
+    </div>
+
+    <div class="bg-gray-50 p-6 rounded-lg mb-6">
+        <h3 class="font-semibold text-lg mb-2">Produto:</h3>
+        <p class="text-gray-700">{{ item.nome }}</p>
+    </div>
+
+    <div class="flex gap-4">
+        <a href="{% url 'item_detail' item.id %}" class="flex-1 bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 text-center font-semibold">
+            Tentar Novamente
+        </a>
+        <a href="{% url 'item_list' %}" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 text-center font-semibold">
+            Voltar para Lista
+        </a>
+    </div>
+</div>
+{% endblock %}

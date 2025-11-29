@@ -10,6 +10,7 @@ from django.views import View
 from django.views.generic import ListView, DetailView
 from django.urls import reverse_lazy
 from .models import Item, Reserva, Notificacao
+from .lambda_integration import processar_venda, entregar_produtos
 
 
 class SessionRequiredMixin:
@@ -73,7 +74,7 @@ class ItemReserveView(SessionRequiredMixin, View):
     
     def post(self, request, pk):
         """
-        Processa o formulário de reserva.
+        Processa o formulário de reserva usando Lambda venda_produtos.
         
         Args:
             pk: ID do item a ser reservado
@@ -87,31 +88,28 @@ class ItemReserveView(SessionRequiredMixin, View):
         quantidade = int(request.POST.get('quantidade', 1))
         email_cliente = request.session.get('customer_email')
         
-        if item.quantidade_estoque >= quantidade:
-            # Cria a reserva
-            Reserva.objects.create(
-                item=item,
-                nome_cliente=nome_cliente,
-                email_cliente=email_cliente,
-                quantidade=quantidade,
-                confirmado=True
-            )
-            
-            # Atualiza o estoque
-            item.quantidade_estoque -= quantidade
-            item.disponivel = item.quantidade_estoque > 0
-            item.save()
+        # Chama Lambda para processar a venda
+        print(f"🔄 Chamando Lambda venda_produtos para item {pk}, quantidade {quantidade}")
+        resultado = processar_venda(pk, quantidade, email_cliente)
+        
+        if resultado['success']:
+            # Atualiza item local (sincroniza com banco)
+            item.refresh_from_db()
             
             # Renderiza página de sucesso
             return render(request, 'items/reservation_success.html', {
                 'nome_cliente': nome_cliente,
                 'item_nome': item.nome,
                 'quantidade': quantidade,
-                'email_cliente': email_cliente
+                'email_cliente': email_cliente,
+                'lambda_message': resultado.get('message')
             })
-        
-        # Se não houver estoque suficiente, redireciona
-        return redirect('item_detail', pk=pk)
+        else:
+            # Se a Lambda falhou, mostra erro
+            return render(request, 'items/reservation_error.html', {
+                'item': item,
+                'error_message': resultado.get('message')
+            })
     
     def get(self, request, pk):
         """Redireciona GET requests para a página de detalhes."""
@@ -148,3 +146,31 @@ class ItemNotifyView(SessionRequiredMixin, View):
             'already_registered': not created
         })
 
+
+
+class EntregarProdutosView(View):
+    """
+    View administrativa para chamar Lambda de entrega de produtos.
+    Popula o banco com novos produtos da padaria.
+    """
+    
+    def get(self, request):
+        """Renderiza página com botão para entregar produtos."""
+        return render(request, 'items/entregar_produtos.html')
+    
+    def post(self, request):
+        """Chama Lambda para entregar produtos."""
+        print("🚚 Chamando Lambda entrega_produto...")
+        resultado = entregar_produtos()
+        
+        if resultado['success']:
+            return render(request, 'items/entrega_sucesso.html', {
+                'message': resultado.get('message'),
+                'produtos_inseridos': resultado.get('produtos_inseridos'),
+                'produtos_atualizados': resultado.get('produtos_atualizados'),
+                'total_produtos': resultado.get('total_produtos')
+            })
+        else:
+            return render(request, 'items/entrega_erro.html', {
+                'error_message': resultado.get('message')
+            })

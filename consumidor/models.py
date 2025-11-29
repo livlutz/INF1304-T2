@@ -2,7 +2,8 @@ from django.db import models
 
 class Item(models.Model):
     nome = models.CharField(max_length=200)
-    estoque = models.IntegerField(default=0)
+    quantidade_estoque = models.IntegerField(default=0)
+    disponivel = models.BooleanField(default=True)
     imagem = models.ImageField(upload_to='produtos/', null=True, blank=True)
 
     def __str__(self):
@@ -30,4 +31,17 @@ class Notificacao(models.Model):
     
     def __str__(self):
         return f"{self.email_cliente} - {self.item.nome}"
+
+
+class EmailSubscription(models.Model):
+    """
+    Rastreia emails inscritos no SNS para notificações
+    """
+    email = models.EmailField(unique=True)
+    subscription_arn = models.CharField(max_length=255, null=True, blank=True)
+    subscribed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.email} - {'Inscrito' if self.subscribed else 'Pendente'}"
 

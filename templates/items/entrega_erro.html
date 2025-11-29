@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Erro na Entrega{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+    <div class="text-center mb-6">
+        <div class="text-6xl mb-4">❌</div>
+        <h2 class="text-3xl font-bold text-red-600 mb-4">Erro na Entrega de Produtos</h2>
+    </div>
+
+    <div class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+        <p class="text-red-800 text-lg">{{ error_message }}</p>
+    </div>
+
+    <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+        <p class="text-yellow-800">
+            <strong>Possíveis causas:</strong>
+        </p>
+        <ul class="list-disc list-inside text-yellow-700 mt-2 space-y-1">
+            <li>Lambda URL não configurada no .env</li>
+            <li>Erro de conexão com AWS</li>
+            <li>Erro no banco de dados RDS</li>
+            <li>Timeout na chamada da Lambda</li>
+        </ul>
+    </div>
+
+    <div class="flex gap-4">
+        <a href="{% url 'entregar_produtos' %}" class="flex-1 bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 text-center font-semibold">
+            Tentar Novamente
+        </a>
+        <a href="{% url 'item_list' %}" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 text-center font-semibold">
+            Voltar para Lista
+        </a>
+    </div>
+</div>
+{% endblock %}

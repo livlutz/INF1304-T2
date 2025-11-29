@@ -6,4 +6,5 @@ urlpatterns = [
     path('<int:pk>/', views.ItemDetailView.as_view(), name='item_detail'),
     path('<int:pk>/reserve/', views.ItemReserveView.as_view(), name='item_reserve'),
     path('<int:pk>/notify/', views.ItemNotifyView.as_view(), name='item_notify'),
+    path('admin/entregar-produtos/', views.EntregarProdutosView.as_view(), name='entregar_produtos'),
 ]
