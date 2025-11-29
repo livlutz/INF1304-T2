@@ -19,10 +19,11 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from .views import HomepageView
+from .views import HomepageView, SubscribeView
 
 urlpatterns = [
     path("", HomepageView.as_view(), name='homepage'),
+    path("subscribe/", SubscribeView.as_view(), name='subscribe'),
     path("admin/", admin.site.urls),
     path("quitutes/", include("consumidor.urls")),
 ]

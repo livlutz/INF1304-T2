@@ -27,7 +27,7 @@ def lambda_handler(event, context):
                 'message': 'Body é obrigatório. Envie um POST request com JSON contendo produto_id, quantidade e email.'
             })
         }
-    
+
     if "body" in event:
         log = json.loads(event["body"])
     else:
@@ -81,17 +81,6 @@ def lambda_handler(event, context):
                 }
 
             produto_id_db, nome, quantidade_estoque, disponivel = result
-
-            # Verifica se está disponível
-            if not disponivel or quantidade_estoque <= 0:
-                return {
-                    'statusCode': 400,
-                    'body': json.dumps({
-                        'message': f'Produto {nome} não está disponível no momento.',
-                        'produto': nome,
-                        'disponivel': False
-                    })
-                }
 
             # Verifica se tem estoque suficiente
             if quantidade_estoque < quantidade:
