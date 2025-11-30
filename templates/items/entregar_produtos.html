@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}Entregar Produtos{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-8 rounded-lg shadow-lg">
+    <h2 class="text-3xl font-bold mb-6 text-amber-700">🚚 Entregar Produtos da Padaria</h2>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+        <p class="text-blue-800 mb-4">
+            Esta ação irá chamar a função Lambda <strong>entrega_produto</strong> que popula o banco de dados
+            com novos produtos da padaria.
+        </p>
+        <ul class="list-disc list-inside text-blue-700 space-y-2">
+            <li>Adiciona novos produtos ao estoque</li>
+            <li>Atualiza quantidade de produtos existentes</li>
+            <li>Marca produtos como disponíveis</li>
+        </ul>
+    </div>
+
+    <form method="POST" action="{% url 'entregar_produtos' %}">
+        {% csrf_token %}
+        
+        <div class="flex gap-4">
+            <button type="submit" class="flex-1 bg-green-600 text-white px-6 py-4 rounded-lg hover:bg-green-700 font-semibold text-lg transition">
+                🚚 Entregar Produtos Agora
+            </button>
+            <a href="{% url 'item_list' %}" class="flex-1 bg-gray-200 text-gray-700 px-6 py-4 rounded-lg hover:bg-gray-300 text-center font-semibold text-lg transition">
+                Cancelar
+            </a>
+        </div>
+    </form>
+
+    <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <p class="text-yellow-800 text-sm">
+            ⚠️ <strong>Nota:</strong> Esta é uma operação administrativa. Use apenas quando necessário reabastecer o estoque.
+        </p>
+    </div>
+</div>
+{% endblock %}

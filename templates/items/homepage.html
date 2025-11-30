@@ -5,19 +5,36 @@
 <div class="max-w-3xl mx-auto">
     <div class="text-center mb-12">
         <h2 class="text-4xl font-bold text-amber-700 mb-4">🍰 Bem-vindo ao Quitute nas Nuvens 🍰</h2>
-        <p class="text-xl text-gray-600 mb-2">Delícias artesanais feitas com carinho!</p>
         <p class="text-gray-500">Reserve seus quitutes favoritos de forma rápida e fácil.</p>
     </div>
 
-    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="text-4xl mb-3">📋</div>
+            <h4 class="font-bold text-gray-800 mb-2">Navegue</h4>
+            <p class="text-gray-600 text-sm">Veja todos os quitutes disponíveis em nossa padaria virtual</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="text-4xl mb-3">📧</div>
+            <h4 class="font-bold text-gray-800 mb-2">Reserve</h4>
+            <p class="text-gray-600 text-sm">Escolha seu quitute favorito faça sua reserva</p>
+        </div>
+        <div class="bg-white p-6 rounded-lg shadow">
+            <div class="text-4xl mb-3">🔔</div>
+            <h4 class="font-bold text-gray-800 mb-2">Seja Notificado</h4>
+            <p class="text-gray-600 text-sm">Se indisponível, te avisamos por email quando chegar na padaria!</p>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-lg shadow-lg p-8 mb-8 mt-8">
         <h3 class="text-2xl font-bold text-center text-gray-800 mb-6">Para começar, informe seu e-mail</h3>
-        
+
         <form method="POST" action="{% url 'homepage' %}" class="space-y-6">
             {% csrf_token %}
-            
+
             <div>
                 <label for="email" class="block text-sm font-medium text-gray-700 mb-2">E-mail</label>
-                <input type="email" id="email" name="email" required 
+                <input type="email" id="email" name="email" required
                        class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent text-lg"
                        placeholder="seu.email@exemplo.com">
             </div>
@@ -26,24 +43,11 @@
                 Ver Quitutes Disponíveis
             </button>
         </form>
+
+        <p class="text-sm text-gray-600 text-center mt-4">
+            Após se inscrever, verifique tanto a caixa de entrada quanto a pasta de spam para o email de confirmação.
+        </p>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="text-4xl mb-3">🎂</div>
-            <h4 class="font-bold text-gray-800 mb-2">Variedade</h4>
-            <p class="text-gray-600 text-sm">Diversos quitutes artesanais</p>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="text-4xl mb-3">⚡</div>
-            <h4 class="font-bold text-gray-800 mb-2">Fácil</h4>
-            <p class="text-gray-600 text-sm">Reserve em poucos cliques</p>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-            <div class="text-4xl mb-3">✨</div>
-            <h4 class="font-bold text-gray-800 mb-2">Qualidade</h4>
-            <p class="text-gray-600 text-sm">Produtos frescos e saborosos</p>
-        </div>
-    </div>
 </div>
 {% endblock %}
