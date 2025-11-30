@@ -51,10 +51,7 @@
         <p class="text-red-700">Este item está esgotado no momento.</p>
     </div>
     <div class="flex gap-4">
-        <a href="{% url 'item_notify' item.id %}" class="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 text-center font-semibold">
-            🔔 Me avise quando voltar
-        </a>
-        <a href="{% url 'item_list' %}" class="flex-1 bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 text-center font-semibold">
+        <a href="{% url 'item_list' %}" class="w-full bg-gray-200 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-300 text-center font-semibold">
             Voltar
         </a>
     </div>

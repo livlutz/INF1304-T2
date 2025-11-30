@@ -33,14 +33,9 @@
                 Reservar
             </a>
             {% else %}
-            <div class="space-y-2">
-                <a href="{% url 'item_detail' item.id %}" class="bg-gray-300 text-gray-500 px-4 py-2 rounded cursor-not-allowed w-full inline-block text-center">
-                    Indisponível
-                </a>
-                <a href="{% url 'item_notify' item.id %}" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 inline-block w-full text-center text-sm">
-                    🔔 Avisar quando voltar
-                </a>
-            </div>
+            <a href="{% url 'item_detail' item.id %}" class="bg-gray-300 text-gray-500 px-4 py-2 rounded cursor-not-allowed w-full inline-block text-center">
+                Indisponível
+            </a>
             {% endif %}
         </div>
     </div>
