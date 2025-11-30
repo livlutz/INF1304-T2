@@ -14,6 +14,7 @@ Aplicação para uma padraria inteligente usando a nuvem da Amazon (AWS). A apli
 ## 🤝 Membros da dupla
 
 Lívia Lutz dos Santos - 2211055
+
 Thiago Pereira Camerato - 2212580
 
 ## 📌 Objetivo
@@ -47,7 +48,6 @@ Desenvolver uma aplicação web para gerenciamento de reservas de quitutes em um
 - ✅ Formulários de reserva e notificação
 - ✅ Páginas de confirmação de sucesso/erro
 - ✅ Navegação responsiva com CSS
-
 
 ### ❌ O que não funciona
    - Conforme as especificações do trabalho no enunciado, não houve nenhuma funcionalidade que testamos e não funcionou
@@ -188,7 +188,6 @@ python manage.py runserver
 
 Acesse: `http://localhost:8000`
 
-
 ## 📖 Instruções de Operação
 
 ### Operação Normal (Cliente)
@@ -199,7 +198,6 @@ Acesse: `http://localhost:8000`
 4. **Para produtos disponíveis**: Clique para reservar
 5. **Para produtos indisponíveis**: Solicite notificação por email
 6. **Aguarde confirmação** por email via SNS
-
 
 ### Testando Funcionalidades
 
@@ -220,7 +218,6 @@ Acesse: `http://localhost:8000`
 - **Lambda Logs**: CloudWatch Logs no AWS Console
 - **RDS Queries**: MySQL Workbench ou `python manage.py dbshell`
 - **SNS Messages**: AWS SNS Console → tópicos criados
-
 
 ## 📊 Diagramas
 
