@@ -14,12 +14,213 @@ Aplicação para uma padraria inteligente usando a nuvem da Amazon (AWS). A apli
 ## 🤝 Membros da dupla
 
 Lívia Lutz dos Santos - 2211055
-
 Thiago Pereira Camerato - 2212580
 
 ## 📌 Objetivo
 
 Desenvolver uma aplicação web para gerenciamento de reservas de quitutes em uma padaria virtual, integrando serviços da AWS (Lambda, RDS, SNS) para automatizar o controle de estoque e notificações aos clientes.
+
+## 📋 Relatório de Implementação
+
+### ✅ O que funciona
+
+**Backend Django:**
+- ✅ Sistema completo de modelos (Item, Reserva, Notificacao, EmailSubscription)
+- ✅ Views para listagem, detalhamento e reserva de produtos
+- ✅ Sistema de notificações por email via Amazon SNS
+- ✅ Interface web responsiva com templates HTML/CSS
+- ✅ Validação de disponibilidade de produtos
+
+**Banco de Dados:**
+- ✅ Integração com MySQL (RDS) e SQLite (desenvolvimento)
+- ✅ Tabelas para itens, reservas, notificações e inscrições de email
+
+**Integração AWS:**
+- ✅ Amazon SNS para envio de notificações por email
+- ✅ Tópicos SNS configurados (ProdutoDisponivel, EnviaEmail)
+- ✅ Sistema de inscrição de emails no SNS
+
+**Interface do Usuário:**
+- ✅ Página inicial com captura de email
+- ✅ Listagem de produtos disponíveis
+- ✅ Página de detalhes do produto
+- ✅ Formulários de reserva e notificação
+- ✅ Páginas de confirmação de sucesso/erro
+- ✅ Navegação responsiva com CSS
+
+
+### ❌ O que não funciona
+   - Conforme as especificações do trabalho no enunciado, não houve nenhuma funcionalidade que testamos e não funcionou
+
+## ✅ Funcionalidades Implementadas
+
+### Backend Django
+- **Modelos de Dados**: Item, Reserva, Notificacao, EmailSubscription
+- **Views**: ItemListView, ItemDetailView, ItemReserveView, ItemNotifyView
+- **Integração AWS**: Chamadas para Lambda functions e SNS
+
+### Banco de Dados
+- **Esquema**: Tabelas criadas para itens, reservas e notificações
+- **Integração**: Suporte a MySQL (RDS) e SQLite (desenvolvimento)
+
+### Funções Lambda da AWS
+- **simulador_vendedor**: Popula banco de dados com produtos
+- **venda_de_produtos**: Atualiza estoque, envia emails para retirar produtos e registra usuários na espera caso o produto não esteja disponível para retirar
+- **subscribe_email**: Gerencia inscrições SNS dos emails dos usuários
+
+### Amazon SNS
+- **Tópicos**: ProdutoDisponivel e EnviaEmail criados
+- **Notificações**: Emails de confirmação de reserva enviados
+- **Subscriptions**: Sistema de inscrição de emails
+
+### Interface Web
+- **Templates**: Páginas responsivas com CSS
+- **Navegação**: Homepage, lista de produtos, detalhes, formulários
+- **Feedback**: Páginas de sucesso/erro para operações
+
+## 🔄 Funcionamento Atual do Sistema
+
+### Fluxo Principal - Cliente
+
+1. **Acesso Inicial:**
+   - Cliente acessa `http://localhost:8000`
+   - Informa seu email na página inicial
+   - Email é armazenado na sessão
+
+2. **Navegação de Produtos:**
+   - Visualiza lista de produtos disponíveis
+   - Pode ver detalhes de cada produto
+   - Produtos indisponíveis são marcados como tal
+
+3. **Reserva de Produtos:**
+   - Para produtos disponíveis: Reserva imediata + email de confirmação
+   - Para produtos indisponíveis: Opção de solicitar notificação
+   - Sistema chama Lambda `venda_de_produtos` para processamento
+
+4. **Notificações:**
+   - **Funcionando**: Confirmação de reserva por email via SNS
+
+### Fluxo Administrativo - Lambda Functions
+
+**Entrega de Produtos (`simulador_vendedor`):**
+- Popula banco de dados com produtos
+- Chamada via interface administrativa em `/entregar-produtos/`
+
+**Processamento de Vendas (`venda_de_produtos`):**
+- Verifica disponibilidade e atualiza estoque
+- Envia confirmação por email
+
+**Subscrição de Emails (`subscribe_email`):**
+- Gerencia inscrições no SNS para notificações
+
+## 🔧 Instalação e Configuração
+
+### Pré-requisitos
+- Python 3.12+
+- Conta AWS com acesso ao RDS, Lambda e SNS
+- MySQL Workbench (opcional, para administração do banco)
+
+### Passos de Instalação
+
+1. **Clone o repositório:**
+   ```bash
+   git clone https://github.com/livlutz/INF1304-T2.git
+   cd INF1304-T2
+   ```
+
+2. **Configure ambiente virtual:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Linux/Mac
+   # ou
+   venv\Scripts\activate     # Windows
+   ```
+
+3. **Instale dependências:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Configure variáveis de ambiente:**
+
+   Crie um arquivo `.env` na raiz do projeto:
+   ```env
+   # Banco de dados RDS
+   DB_HOST=seu-endpoint-rds.us-east-1.rds.amazonaws.com
+   DB_USER=seu_usuario
+   DB_PASSWORD=sua_senha
+   DB_NAME=padaria-db
+   DB_PORT=3306
+
+   ```
+
+5. **Execute migrações do Django:**
+   ```bash
+   python manage.py makemigrations
+   python manage.py migrate
+   ```
+
+6. **Deploy das Lambda Functions:**
+
+   No AWS Lambda Console, crie as seguintes funções:
+   - `simulador_vendedor` → `vendaProduto/simulador_vendedor.py`
+   - `venda_de_produtos` → `vendaProduto/venda_de_produtos.py`
+   - `subscribe_email` → `subscribeEmail/subscribe_email.py`
+
+   Configure as variáveis de ambiente em cada função.
+
+7. **Configure SNS Topics:**
+
+   No AWS SNS Console:
+   - Crie tópico `ProdutoDisponivel`
+   - Crie tópico `EnviaEmail`
+   - Configure subscrições de email conforme necessário
+
+### Inicialização da Aplicação
+
+```bash
+# Execute o script de inicialização, que também pode substituir os passos 2, 3 e 5
+./run.sh
+
+# Ou manualmente:
+python manage.py runserver
+```
+
+Acesse: `http://localhost:8000`
+
+
+## 📖 Instruções de Operação
+
+### Operação Normal (Cliente)
+
+1. **Acesse a aplicação** em `http://localhost:8000`
+2. **Digite seu email** na página inicial
+3. **Navegue pelos produtos** disponíveis
+4. **Para produtos disponíveis**: Clique para reservar
+5. **Para produtos indisponíveis**: Solicite notificação por email
+6. **Aguarde confirmação** por email via SNS
+
+
+### Testando Funcionalidades
+
+#### Teste de Reserva
+1. Acesse produto disponível
+2. Faça reserva
+3. Verifique se email de confirmação foi enviado
+4. Confirme se estoque foi atualizado
+
+#### Teste de Notificação
+1. Solicite notificação para produto indisponível
+2. Use função administrativa para "reabastecer"
+3. Verifique se notificação foi enviada
+
+### Monitoramento
+
+- **Django Logs**: Visíveis no terminal onde o servidor roda
+- **Lambda Logs**: CloudWatch Logs no AWS Console
+- **RDS Queries**: MySQL Workbench ou `python manage.py dbshell`
+- **SNS Messages**: AWS SNS Console → tópicos criados
+
 
 ## 📊 Diagramas
 
@@ -33,178 +234,6 @@ Desenvolver uma aplicação web para gerenciamento de reservas de quitutes em um
 
 ![UML Verifica Disponibilidade](diagramas/UML_verifica_disponibilidade.png)
 
-#### Envio de Email
-
-![UML Envio de Email](diagramas/UML_envio_de_email.png)
-
 #### Venda de Produtos
 
 ![UML Venda de Produtos](diagramas/UML_venda_de_produtos.png)
-
-## Requisitos Implementados
-
-**Funções Lambda :**
-- `Entrega de produtos` - Popula o banco de dados com 20 produtos da padaria, simulando a entrega de produtos pelo fornecedor
-- `Verificação de disponibilidade de um produto` - Verifica disponibilidade de produtos e registra interesse de clientes em caso de indisponibilidade
-- `Envio de emails` - Notifica clientes quando produtos desejados chegam e estão disponíveis para serem retirados na padaria
-- `Venda de um produto` - Atualiza estoque após venda de produtos
-
-**Banco de Dados:**
-- MySQL no Amazon RDS com tabelas:
-  - `consumidor_item` - Catálogo de produtos (Id, nome e quantidade em estoque)
-  - `consumidor_reserva` - Registro de reservas dos clientes
-  - `consumidor_notificacao` - Fila de notificações para clientes aguardando produtos
-
-**Envio de E-mail:**
-- Amazon SNS (Simple Notification Service) através do tópico `ProdutoDisponivel`
-- Notificações automáticas quando produtos ficam disponíveis por email
-- Confirmação de reserva por e-mail
-
-**Interface com Usuário:**
-- Aplicação web Django com templates HTML/CSS
-- Navegação de produtos disponíveis
-- Sistema de reserva com captura de e-mail
-- Notificações automáticas de disponibilidade por email
-
-### Funcionamento
-
-1. **Cliente interessado em produto:**
-   - Acessa a interface web, informa seu e-mail e seleciona o produto desejado
-
-2. **Produto disponível:**
-   - Sistema envia e-mail imediatamente via SNS
-   - Cliente deve comparecer à padaria para efetivar a compra
-   - Estoque é atualizado após confirmação
-
-3. **Produto indisponível:**
-   - Sistema registra interesse no banco de dados
-   - Quando o produto chegar com a reposição do estoque pelo fornecedor, disparamos notificações por email aos interessados na fila de espera
-
-
-4. **Controle de estoque:**
-   - Todas as informações armazenadas no MySQL (RDS)
-   - Funções lambda gerenciam entrada e saída de produtos
-   - Banco de dados mantém histórico de reservas e vendas
-
-## 🔧 Instalação da Aplicação
-
-### Passos de Instalação
-
-1. **Clone o repositório:**
-   ```bash
-   git clone https://github.com/livlutz/INF1304-T2.git
-   cd INF1304-T2
-   ```
-
-   Como alternativa podemos também dar um fork no repositório.
-
-2. **Crie um ambiente virtual:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Linux/Mac
-   # ou
-   venv\Scripts\activate  # Windows
-   ```
-
-3. **Instale as dependências:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Configure o banco de dados RDS:**
-   - Crie uma instância MySQL no Amazon RDS
-   - Anote o endpoint, usuário e senha
-   - Execute o schema em `database/schema.sql` (se aplicável)
-
-5. **Configure variáveis de ambiente:**
-   - Crie um arquivo `.env` na raiz do projeto:
-   ```env
-   DB_HOST=seu-endpoint-rds.us-east-1.rds.amazonaws.com
-   DB_USER=seu_usuario
-   DB_PASSWORD=sua_senha
-   DB_NAME=padaria-db
-   DB_PORT=3306
-   ```
-
-6. **Configure o SNS na AWS:**
-   - Acesse o Console AWS → SNS
-   - Crie um tópico chamado `ProdutoDisponivel`
-   - Inscreva seu e-mail no tópico para receber notificações
-   - Confirme a inscrição através do e-mail recebido
-
-
-7. **Execute as migrações do Django:**
-   ```bash
-   python manage.py migrate
-   ```
-
-8. **Deploy das Funções Lambda:**
-   - Acesse AWS Lambda Console
-   - Crie 5 funções Lambda com Python 3.11+
-   - Faça upload dos arquivos em `lambda_functions/`:
-     - `simulador_vendedor.py`
-     - `verifica_disponivel.py`
-     - `envia_email_interessados.py`
-     - `venda_de_produtos.py`
-     - `subscribe_email.py`
-   - Configure variáveis de ambiente nas funções Lambda (credenciais RDS)
-
-9. **Rode o script para atualizar o banco de dados:**
-   ```bash
-   ./atualizar_banco.sh
-   ```
-
-## 📖 Instruções de Operação
-
-### Iniciar a Aplicação
-
-```bash
-python manage.py runserver
-```
-
-ou, alternativamente podemos executar o script bash na raiz do projeto para levantar a aplicação:
-
-```bash
-./run.sh
-```
-
-Acesse em seu navegador: `http://localhost:8000` ou navegue até a aba Portas do terminal e clique no link gerado na porta 8000.
-
-### Fluxo de Uso - Cliente
-
-1. **Acessar a aplicação:**
-   - Abra `http://localhost:8000`
-   - Insira seu e-mail na página inicial
-   - Clique em "Continuar"
-
-2. **Navegar pelos produtos:**
-   - Visualize a lista de quitutes disponíveis
-   - Veja quantidade em estoque de cada item
-
-3. **Reservar um produto:**
-   - Clique no produto desejado
-   - Preencha seu nome e quantidade
-   - Clique em "Reservar"
-
-4. **Receber notificações:**
-   - **Se disponível:** Recebe e-mail imediato para comparecer à padaria
-   - **Se indisponível:** Fica na fila e recebe e-mail quando produto chegar
-
-### Operações Administrativas (Lambda Functions)
-
-**Adicionar produtos ao estoque:**
-- Execute a função Lambda `entrega_de_produtos`
-- Popula o banco de dados com alguns itens em certas quantidades
-- Dispara notificações para clientes na fila de espera aguardando seus respectivos itens chegarem no estoque da padaria
-
-**Verificar disponibilidade:**
-- Execute a função Lambda `verifica_disponivel`
-- Verifica se um produto requisitado pelo usuário se encontra no estoque
-
-**Notificar clientes:**
-- Execute a função Lambda `envia_email_interessados`
-- Envia e-mails para todos os clientes na fila de um produto específico
-
-**Registrar venda:**
-- Execute a função Lambda `venda_de_produtos`
-- Atualiza estoque após compra confirmada, diminuindo a quantidade dos respectivos itens.
